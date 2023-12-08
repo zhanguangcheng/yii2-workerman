@@ -10,7 +10,7 @@ $config = [
     'language' => 'zh',
     'timeZone' => 'Asia/Shanghai',
     'aliases' => [
-        '@bower' => '@vendor/bower-asset',
+        '@bower' => '@vendor/yidas/yii2-bower-asset/bower',
         '@npm' => '@vendor/npm-asset',
         '@webroot' => '@app/web',
     ],

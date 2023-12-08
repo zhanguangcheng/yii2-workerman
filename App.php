@@ -1,5 +1,6 @@
 <?php
 
+use Linkerman\ExitException;
 use Workerman\Connection\TcpConnection;
 use Workerman\Lib\Timer;
 use Workerman\Protocols\Http\Request;
@@ -19,10 +20,6 @@ class App
 
     public static function init(): void
     {
-        defined('YII_DEBUG') or define('YII_DEBUG', true);
-        defined('YII_ENV') or define('YII_ENV', 'dev');
-        defined('YII_ENABLE_ERROR_HANDLER') or define('YII_ENABLE_ERROR_HANDLER', false);
-        require_once __DIR__ . '/vendor/yiisoft/yii2/Yii.php';
         self::timer();
         Timer::add(1, [self::class, 'timer']);
         App::$config = require __DIR__ . '/config/web.php';
@@ -40,9 +37,12 @@ class App
      */
     public static function send(TcpConnection $connection, Request $request): void
     {
-        // $_SERVER['HTTPS'] = 'on';
         $_SERVER['REQUEST_TIME_FLOAT'] = self::$requestTimeFloat;
         $_SERVER['REQUEST_TIME'] = self::$requestTime;
+        $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/web/index.php';
+        if (isset($_SERVER['HTTP_HTTPS'])) {
+            $_SERVER['HTTPS'] = $_SERVER['HTTP_HTTPS'];
+        }
 
         ob_start();
         $app = new Application(self::$config);
@@ -53,6 +53,8 @@ class App
             $app->set('db', self::getDb());
             $app->set('redis', self::getRedis());
             $app->run();
+        } catch (ExitException $e) {
+            echo $e->getMessage();
         } catch (\yii\db\Exception $e) {
             if ($e->getCode() === "HY000" && strpos($e->getMessage(), "2006")) {
                 try {

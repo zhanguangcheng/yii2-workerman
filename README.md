@@ -23,7 +23,35 @@ sed -i 's|exit(1);|exit_exception(1);|g' vendor/yiisoft/yii2/base/ErrorHandler.p
 ## Start the service
 
 ```bash
-php -c php.ini server.php start
+php server.php start
+```
+
+## nginx proxy config example
+```
+http {
+    #...
+    
+    upstream backend {
+        server 127.0.0.1:8080;
+		keepalive 10240;
+    }
+    server {
+        listen       80;
+        server_name  localhost;
+        location / {
+            try_files $uri @php;
+        }
+        location @php {
+            proxy_pass http://backend;
+            proxy_http_version 1.1;
+			proxy_set_header Connection "";
+            proxy_set_header Host $host;
+            proxy_set_header HTTPS $https;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+    }
+}
 ```
 
 ## Features
