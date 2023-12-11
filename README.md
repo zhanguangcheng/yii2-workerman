@@ -22,18 +22,23 @@ sed -i 's|exit(1);|exit_exception(1);|g' vendor/yiisoft/yii2/base/ErrorHandler.p
 
 ## Start the service
 
+Add to php.ini file
+```ini
+disable_functions=set_time_limit,header,header_remove,headers_sent,headers_list,http_response_code,setcookie,setrawcookie,session_start,session_id,session_name,session_save_path,session_status,session_write_close,session_regenerate_id,session_unset,session_destroy,is_uploaded_file,move_uploaded_file
+```
+
 ```bash
 php server.php start
 ```
 
 ## nginx proxy config example
-```
+```nginx configuration
 http {
     #...
     
     upstream backend {
         server 127.0.0.1:8080;
-		keepalive 10240;
+        keepalive 10240;
     }
     server {
         listen       80;
@@ -44,7 +49,7 @@ http {
         location @php {
             proxy_pass http://backend;
             proxy_http_version 1.1;
-			proxy_set_header Connection "";
+            proxy_set_header Connection "";
             proxy_set_header Host $host;
             proxy_set_header HTTPS $https;
             proxy_set_header X-Real-IP $remote_addr;
