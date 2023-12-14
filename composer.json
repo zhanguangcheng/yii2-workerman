@@ -3,7 +3,7 @@
     "php": "^8.0",
     "yiisoft/yii2": "~2.0.43",
     "yiisoft/yii2-redis": "^2.0",
-    "zhanguangcheng/linkerman": "~0.2.0",
+    "zhanguangcheng/linkerman": "~0.2.1",
     "yidas/yii2-bower-asset": "2.0.13.1"
   },
   "require-dev": {

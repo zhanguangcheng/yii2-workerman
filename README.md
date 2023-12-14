@@ -24,7 +24,7 @@ sed -i 's|exit(1);|exit_exception(1);|g' vendor/yiisoft/yii2/base/ErrorHandler.p
 
 Add to php.ini file
 ```ini
-disable_functions=set_time_limit,header,header_remove,headers_sent,headers_list,http_response_code,setcookie,setrawcookie,session_start,session_id,session_name,session_save_path,session_status,session_write_close,session_regenerate_id,session_unset,session_destroy,is_uploaded_file,move_uploaded_file
+disable_functions=register_shutdown_function,set_time_limit,header,header_remove,headers_sent,headers_list,http_response_code,setcookie,setrawcookie,session_start,session_id,session_name,session_save_path,session_status,session_write_close,session_regenerate_id,session_unset,session_destroy,is_uploaded_file,move_uploaded_file
 ```
 
 ```bash
@@ -66,6 +66,9 @@ http {
 * Reuse database Connections
 * Reconnect after database disconnection
 * Reuse Redis Connections
+* Save Session to Redis
+* Automatically reloads files after changes and when process memory usage is too large
+* .env config file support
 
 ## Security Vulnerabilities
 

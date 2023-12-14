@@ -61,25 +61,31 @@ class App
                     self::getDb()->close();
                     self::getDb()->open();
                     $app->run();
-                } catch (Exception $e) {
-                    $app->errorHandler->handleException($e);
-                } catch (Throwable $th) {
-                    $app->errorHandler->handleException($th);
+                } catch (Exception|Throwable $e) {
+                    self::handleException($app, $e);
                 }
             } else {
-                $app->errorHandler->handleException($e);
+                self::handleException($app, $e);
             }
-        } catch (Exception $e) {
-            $app->errorHandler->handleException($e);
-        } catch (Throwable $th) {
-            $app->errorHandler->handleException($th);
+        } catch (Exception|Throwable $e) {
+            self::handleException($app, $e);
         }
         $response = (string)ob_get_clean();
 
         header(self::$headerDate);
         $connection->send($response);
+        // Flush log messages from memory to disk to prevent memory leaks.
+        Yii::getLogger()->flush(true);
         unset($app);
         unset($response);
+    }
+
+    public static function handleException(Application $app, $e): void
+    {
+        try {
+            $app->errorHandler->handleException($e);
+        } catch(Exception|Throwable) {
+        }
     }
 
     public static function stop(): void
