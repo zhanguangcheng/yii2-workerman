@@ -22,6 +22,7 @@ class App
     {
         self::timer();
         Timer::add(1, [self::class, 'timer']);
+        Timer::add(55, [self::class, 'heartbeat']);
         App::$config = require __DIR__ . '/config/web.php';
     }
 
@@ -30,6 +31,24 @@ class App
         self::$headerDate = 'Date: ' . gmdate('D, d M Y H:i:s') . ' GMT';
         self::$requestTime = time();
         self::$requestTimeFloat = microtime(true);
+    }
+
+    /**
+     * @throws InvalidConfigException
+     */
+    public static function heartbeat(): void
+    {
+        try {
+            self::getDb()->createCommand("SELECT 1 LIMIT 1")->execute();
+        } catch (\yii\db\Exception $e) {
+            if ($e->getCode() === "HY000" && strpos($e->getMessage(), "2006")) {
+                try {
+                    self::getDb()->close();
+                    self::getDb()->open();
+                } catch (Exception|Throwable $e) {
+                }
+            }
+        }
     }
 
     /**
@@ -84,7 +103,7 @@ class App
     {
         try {
             $app->errorHandler->handleException($e);
-        } catch(Exception|Throwable) {
+        } catch (Exception|Throwable) {
         }
     }
 
