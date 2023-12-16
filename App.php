@@ -63,6 +63,12 @@ class App
             $_SERVER['HTTPS'] = $_SERVER['HTTP_HTTPS'];
         }
 
+        // Static file support
+        if (null !== ($response = StaticFile::process($request))) {
+            $connection->send($response);
+            return;
+        }
+
         ob_start();
         $app = new Application(self::$config);
         try {
