@@ -38,6 +38,7 @@ $config = [
                 ]
             ]);
         },
+        /*
         'redis' => function () {
             return new yii\redis\Connection([
                 'hostname' => '127.0.0.1',
@@ -46,6 +47,7 @@ $config = [
                 'retries' => 1,
             ]);
         },
+        */
         'urlManager' => function () {
             return new yii\web\UrlManager([
                 'enablePrettyUrl' => true,

@@ -1,5 +1,6 @@
 <?php
 
+use app\App;
 use Linkerman\Linkerman;
 use Workerman\Protocols\Http\Session;
 use Workerman\Protocols\Http\Session\RedisSessionHandler;
@@ -27,6 +28,7 @@ $worker->onMessage = [App::class, 'send'];
 $worker->onWorkerStop = [App::class, 'stop'];
 
 // Save session to Redis
+/*
 $config = [
     'host' => '127.0.0.1',
     'port' => 6379,
@@ -36,6 +38,7 @@ $config = [
     'prefix' => 'sess_'
 ];
 Session::handlerClass(RedisSessionHandler::class, $config);
+*/
 
 // Automatically reload after file changes or process memory usage is too large
 if (DIRECTORY_SEPARATOR === '/') {

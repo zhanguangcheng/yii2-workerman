@@ -1,9 +1,14 @@
 <?php
 
+namespace app;
+
+use Exception;
 use Linkerman\ExitException;
+use Throwable;
 use Workerman\Connection\TcpConnection;
 use Workerman\Lib\Timer;
 use Workerman\Protocols\Http\Request;
+use Yii;
 use yii\base\InvalidConfigException;
 use yii\db\Connection;
 use yii\redis\Connection as RedisConnection;
@@ -15,8 +20,8 @@ class App
     public static string $headerDate;
     public static int $requestTime;
     public static float $requestTimeFloat;
-    public static Connection $db;
-    public static RedisConnection $redis;
+    public static ?Connection $db = null;
+    public static ?RedisConnection $redis = null;
 
     public static function init(): void
     {
@@ -45,7 +50,7 @@ class App
                 try {
                     self::getDb()->close();
                     self::getDb()->open();
-                } catch (Exception|Throwable $e) {
+                } catch (Exception|Throwable) {
                 }
             }
         }
@@ -75,8 +80,12 @@ class App
             $app->errorHandler->silentExitOnException = true;
             $app->errorHandler->discardExistingOutput = false;
             $app->get('request')->setRawBody($request->rawBody());
-            $app->set('db', self::getDb());
-            $app->set('redis', self::getRedis());
+            if (self::getDb()) {
+                $app->set('db', self::getDb());
+            }
+            if (self::getRedis()) {
+                $app->set('redis', self::getRedis());
+            }
             $app->run();
         } catch (ExitException $e) {
             echo $e->getMessage();
@@ -105,6 +114,11 @@ class App
         unset($response);
     }
 
+    /**
+     * @param Application $app
+     * @param $e
+     * @return void
+     */
     public static function handleException(Application $app, $e): void
     {
         try {
@@ -119,27 +133,35 @@ class App
     }
 
     /**
-     * @throws \yii\db\Exception
+     * @return Connection|null
      * @throws InvalidConfigException
+     * @throws \yii\db\Exception
      */
-    public static function getDb(): Connection
+    public static function getDb(): Connection|null
     {
-        if (!isset(self::$db)) {
-            self::$db = Yii::createObject(self::$config['components']['db']);
-            self::$db->open();
+        if (!isset(self::$db) && isset(self::$config['components']['db'])) {
+            $component = Yii::createObject(self::$config['components']['db']);
+            if ($component instanceof Connection) {
+                self::$db = $component;
+                self::$db->open();
+            }
         }
         return self::$db;
     }
 
     /**
-     * @throws \yii\db\Exception
+     * @return RedisConnection|null
      * @throws InvalidConfigException
+     * @throws \yii\db\Exception
      */
-    public static function getRedis(): RedisConnection
+    public static function getRedis(): RedisConnection|null
     {
-        if (!isset(self::$redis)) {
-            self::$redis = Yii::createObject(self::$config['components']['redis']);
-            self::$redis->open();
+        if (!isset(self::$redis) && isset(self::$config['components']['redis'])) {
+            $component = Yii::createObject(self::$config['components']['redis']);
+            if ($component instanceof RedisConnection) {
+                self::$redis = $component;
+                self::$redis->open();
+            }
         }
         return self::$redis;
     }
