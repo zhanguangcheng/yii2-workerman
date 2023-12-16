@@ -13,6 +13,7 @@ $monitor_worker->onWorkerStart = static function (): void {
             __DIR__ . '/commands',
             __DIR__ . '/config',
             __DIR__ . '/controllers',
+            __DIR__ . '/models',
             __DIR__ . '/views',
             __DIR__ . '/App.php',
         ],
