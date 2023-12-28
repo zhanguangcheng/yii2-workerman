@@ -1,4 +1,10 @@
 {
+  "name": "zhanguangcheng/yii2-workerman",
+  "description": "Run Yii 2 in Workerman as a project startup template",
+  "keywords": [
+    "workerman",
+    "yii"
+  ],
   "require": {
     "php": "^8.0",
     "yiisoft/yii2": "~2.0.43",

@@ -14,17 +14,13 @@ The purpose is to run the Yii 2 framework in Workerman to implement the resident
 git clone https://github.com/zhanguangcheng/yii2-workerman.git
 cd yii2-workerman
 composer install --optimize-autoloader --classmap-authoritative
-
-#Replace exit() to prevent worker from exiting abnormally
-sed -i 's|exit($status)|exit_exception($status)|g' vendor/yiisoft/yii2/base/Application.php
-sed -i 's|exit(1);|exit_exception(1);|g' vendor/yiisoft/yii2/base/ErrorHandler.php
 ```
 
 ## Start the service
 
 Add to php.ini file
 ```ini
-disable_functions=register_shutdown_function,set_time_limit,header,header_remove,headers_sent,headers_list,http_response_code,setcookie,setrawcookie,session_start,session_id,session_name,session_save_path,session_status,session_write_close,session_regenerate_id,session_unset,session_destroy,is_uploaded_file,move_uploaded_file
+disable_functions=set_time_limit,header,header_remove,headers_sent,headers_list,http_response_code,setcookie,setrawcookie,session_start,session_id,session_name,session_save_path,session_status,session_write_close,session_regenerate_id,session_unset,session_destroy,is_uploaded_file,move_uploaded_file
 ```
 
 ```bash

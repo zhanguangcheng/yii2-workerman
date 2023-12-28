@@ -12,9 +12,23 @@ class Installer
             ],
             '/vendor/yiisoft/yii2/base/ErrorHandler.php' => [
                 'exit(1);' => 'exit_exception(1);',
+                'register_shutdown_function(' => 'register_shutdown_function_user(',
             ],
             '/vendor/yiisoft/yii2/web/Request.php' => [
                 "file_get_contents('php://input')" => 'request_raw_body()',
+            ],
+            '/vendor/yiisoft/yii2/log/Logger.php' => [
+                "YII_BEGIN_TIME" => "\$_SERVER['REQUEST_TIME_FLOAT']",
+                'register_shutdown_function(' => 'register_shutdown_function_user(',
+            ],
+            '/vendor/yiisoft/yii2/log/Target.php' => [
+                "YII_BEGIN_TIME" => "\$_SERVER['REQUEST_TIME_FLOAT']",
+            ],
+            '/vendor/yiisoft/yii2/mutex/Mutex.php' => [
+                'register_shutdown_function(' => 'register_shutdown_function_user(',
+            ],
+            '/vendor/yiisoft/yii2/web/Session.php' => [
+                'register_shutdown_function(' => 'register_shutdown_function_user(',
             ],
         ];
 
