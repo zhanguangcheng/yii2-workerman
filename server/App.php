@@ -1,13 +1,20 @@
 <?php
 
-namespace app;
+namespace server;
 
 use Exception;
 use Linkerman\ExitException;
+use Linkerman\Http;
+use ReflectionException;
+use server\middlewares\Guard;
+use server\middlewares\Middleware;
+use server\middlewares\RateLimiter;
+use server\middlewares\StaticFile;
 use Throwable;
 use Workerman\Connection\TcpConnection;
 use Workerman\Lib\Timer;
 use Workerman\Protocols\Http\Request;
+use Workerman\Protocols\Http\Response;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\db\Connection;
@@ -16,26 +23,31 @@ use yii\web\Application;
 
 class App
 {
-    public static array $config;
-    public static string $headerDate;
-    public static int $requestTime;
-    public static float $requestTimeFloat;
+    public static array $config = [];
     public static ?Connection $db = null;
     public static ?RedisConnection $redis = null;
+    public static Middleware $middleware;
 
+    /**
+     * @throws ReflectionException
+     * @throws InvalidConfigException
+     * @throws \yii\db\Exception
+     */
     public static function init(): void
     {
-        self::timer();
-        Timer::add(1, [self::class, 'timer']);
+        App::$config = require APP_PATH . '/src/config/web.php';
+        self::heartbeat();
         Timer::add(55, [self::class, 'heartbeat']);
-        App::$config = require __DIR__ . '/config/web.php';
-    }
-
-    public static function timer(): void
-    {
-        self::$headerDate = 'Date: ' . gmdate('D, d M Y H:i:s') . ' GMT';
-        self::$requestTime = time();
-        self::$requestTimeFloat = microtime(true);
+        self::$middleware = new Middleware();
+        if (self::getRedis()) {
+            self::$middleware->load([
+                new RateLimiter(600, 60, self::getRedis()),
+            ]);
+        }
+        self::$middleware->load([
+            new Guard(),
+            new StaticFile(APP_PATH . '/web'),
+        ]);
     }
 
     /**
@@ -56,30 +68,26 @@ class App
         }
     }
 
+    public static function send(TcpConnection $connection, Request $request): void
+    {
+        $_SERVER['SCRIPT_FILENAME'] = APP_PATH . '/web/index.php';
+        $response = self::$middleware->call($request, [self::class, 'run']);
+        $isSse = str_contains($response->getHeader('Content-Type')??'', 'text/event-stream');
+        if (!$isSse) {
+            $connection->send($response);
+        }
+    }
+
     /**
      * @throws InvalidConfigException
      */
-    public static function send(TcpConnection $connection, Request $request): void
+    public static function run(): Response
     {
-        $_SERVER['REQUEST_TIME_FLOAT'] = self::$requestTimeFloat;
-        $_SERVER['REQUEST_TIME'] = self::$requestTime;
-        $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/web/index.php';
-        if (isset($_SERVER['HTTP_HTTPS'])) {
-            $_SERVER['HTTPS'] = $_SERVER['HTTP_HTTPS'];
-        }
-
-        // Static file support
-        if (null !== ($response = StaticFile::process($request))) {
-            $connection->send($response);
-            return;
-        }
-
         ob_start();
         $app = new Application(self::$config);
         try {
             $app->errorHandler->silentExitOnException = true;
             $app->errorHandler->discardExistingOutput = false;
-            $app->get('request')->setRawBody($request->rawBody());
             if (self::getDb()) {
                 $app->set('db', self::getDb());
             }
@@ -104,21 +112,12 @@ class App
         } catch (Exception|Throwable $e) {
             self::handleException($app, $e);
         }
-        $response = (string)ob_get_clean();
-
-        header(self::$headerDate);
-        $connection->send($response);
-        // Flush log messages from memory to disk to prevent memory leaks.
+        $responseText = (string)ob_get_clean();
         Yii::getLogger()->flush(true);
-        unset($app);
-        unset($response);
+        Http::$response->withBody($responseText);
+        return Http::$response;
     }
 
-    /**
-     * @param Application $app
-     * @param $e
-     * @return void
-     */
     public static function handleException(Application $app, $e): void
     {
         try {

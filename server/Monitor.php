@@ -1,36 +1,16 @@
-<?php
+<?php /** @noinspection PhpComposerExtensionStubsInspection */
 
+namespace server;
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
 use Workerman\Lib\Timer;
-use Workerman\Worker;
-
-global $monitor_worker;
-$monitor_worker = new Worker();
-$monitor_worker->name = 'Monitor';
-$monitor_worker->reloadable = false;
-$monitor_worker->onWorkerStart = static function (): void {
-    new Monitor(
-        monitorDir: [
-            __DIR__ . '/commands',
-            __DIR__ . '/config',
-            __DIR__ . '/controllers',
-            __DIR__ . '/models',
-            __DIR__ . '/views',
-            __DIR__ . '/App.php',
-        ],
-        freeMemoryReload: 128 * 1024 * 1024,
-        extensions: ['php'],
-    );
-};
 
 class Monitor
 {
-    public function __construct(public array $monitorDir, public int $freeMemoryReload, public array $extensions = [])
+    public function __construct(public array $monitorDir, public int $freeMemoryReload = 128 * 1024 * 1024, public array $extensions = ['php'])
     {
-        if (!Worker::getAllWorkers()) {
-            return;
-        }
-        $this->processMonitor();
-        $this->fileMonitor();
     }
 
     public function processMonitor(): void
@@ -46,11 +26,19 @@ class Monitor
             echo "\nMonitor file change turned off because exec() has been disabled by disable_functions setting in php.ini\n";
         } else {
             Timer::add(1, function () {
-                foreach ($this->monitorDir as $dir) {
-                    $this->checkFilesChange($dir);
-                }
+                $this->checkAllFilesChange($this->monitorDir);
             });
         }
+    }
+
+    public function checkAllFilesChange($dirs): bool
+    {
+        foreach ($dirs as $dir) {
+            if ($this->checkFilesChange($dir)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
