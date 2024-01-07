@@ -20,6 +20,7 @@ use yii\base\InvalidConfigException;
 use yii\db\Connection;
 use yii\redis\Connection as RedisConnection;
 use yii\web\Application;
+use yii\web\UploadedFile;
 
 class App
 {
@@ -71,6 +72,7 @@ class App
     public static function send(TcpConnection $connection, Request $request): void
     {
         $_SERVER['SCRIPT_FILENAME'] = APP_PATH . '/web/index.php';
+        UploadedFile::reset();
         $response = self::$middleware->call($request, [self::class, 'run']);
         $isSse = str_contains($response->getHeader('Content-Type')??'', 'text/event-stream');
         if (!$isSse) {
