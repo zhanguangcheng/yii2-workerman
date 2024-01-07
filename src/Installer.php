@@ -33,7 +33,7 @@ class Installer
         ];
 
         foreach ($replaces as $file => $item) {
-            $file = __DIR__ . $file;
+            $file = __DIR__ . '/..' . $file;
             $text = file_get_contents($file);
             foreach ($item as $search => $replace) {
                 $text = str_replace($search, $replace, $text);
