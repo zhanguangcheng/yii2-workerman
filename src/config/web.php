@@ -15,6 +15,7 @@ $config = [
         '@webroot' => '@app/web',
     ],
     'basePath' => dirname(__DIR__),
+    'vendorPath' => dirname(__DIR__, 2) . '/vendor',
     'params' => $params,
     'components' => [
         'db' => $db,
