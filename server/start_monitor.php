@@ -1,6 +1,10 @@
 <?php
 
-global $monitor_worker;
+/**
+ * Monitor service
+ *
+ * @noinspection PhpObjectFieldsAreOnlyWrittenInspection
+ */
 
 use server\Monitor;
 use Workerman\Worker;
@@ -15,10 +19,9 @@ $monitor_worker->onWorkerStart = static function (): void {
         monitorDir: [
             realpath(__DIR__ . '/../src'),
             realpath(__DIR__ . '/../server'),
-            realpath(__DIR__ . '/../.env'),
         ],
         freeMemoryReload: 128 * 1024 * 1024,
-        extensions: ['php'],
+        extensions: ['php', 'env'],
     );
     if (DIRECTORY_SEPARATOR === '/') {
         $monitor->processMonitor();

@@ -72,7 +72,6 @@ class App
     public static function send(TcpConnection $connection, Request $request): void
     {
         $_SERVER['SCRIPT_FILENAME'] = APP_PATH . '/web/index.php';
-        UploadedFile::reset();
         $response = self::$middleware->call($request, [self::class, 'run']);
         $isSse = str_contains($response->getHeader('Content-Type')??'', 'text/event-stream');
         if (!$isSse) {
@@ -82,6 +81,7 @@ class App
 
     /**
      * @throws InvalidConfigException
+     * @noinspection PhpRedundantCatchClauseInspection
      */
     public static function run(): Response
     {
@@ -96,21 +96,12 @@ class App
             if (self::getRedis()) {
                 $app->set('redis', self::getRedis());
             }
+            UploadedFile::reset();
             $app->run();
         } catch (ExitException $e) {
             echo $e->getMessage();
         } catch (\yii\db\Exception $e) {
-            if ($e->getCode() === "HY000" && strpos($e->getMessage(), "2006")) {
-                try {
-                    self::getDb()->close();
-                    self::getDb()->open();
-                    $app->run();
-                } catch (Exception|Throwable $e) {
-                    self::handleException($app, $e);
-                }
-            } else {
-                self::handleException($app, $e);
-            }
+            self::handleDatabaseException($e, $app);
         } catch (Exception|Throwable $e) {
             self::handleException($app, $e);
         }
@@ -165,6 +156,26 @@ class App
             }
         }
         return self::$redis;
+    }
+
+    /**
+     * @param Exception $e
+     * @param Application $app
+     * @return void
+     */
+    public static function handleDatabaseException(Exception $e, Application $app): void
+    {
+        if ($e->getCode() === "HY000" && strpos($e->getMessage(), "2006")) {
+            try {
+                self::getDb()->close();
+                self::getDb()->open();
+                $app->run();
+            } catch (Exception|Throwable $e) {
+                self::handleException($app, $e);
+            }
+        } else {
+            self::handleException($app, $e);
+        }
     }
 
 }

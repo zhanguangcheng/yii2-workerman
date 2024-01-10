@@ -10,8 +10,7 @@ $resource = popen_processes($files);
 $monitor = new Monitor([
     realpath(__DIR__ . '/src'),
     realpath(__DIR__ . '/server'),
-    realpath(__DIR__ . '/.env'),
-]);
+], 128 * 1024 * 1024, ['php', 'env']);
 
 echo "\r\n";
 while (true) {

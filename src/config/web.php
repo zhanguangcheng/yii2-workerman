@@ -19,52 +19,43 @@ $config = [
     'params' => $params,
     'components' => [
         'db' => $db,
-        // Functions are faster than array declarations,
-        // since they avoid the cost of Dependency Injection.
-        'cache' => function () {
-            return new yii\caching\FileCache([
-                'gcProbability' => 0,
-            ]);
-        },
-        'log' => function () {
-            return new yii\log\Dispatcher([
-                'traceLevel' => YII_DEBUG ? 3 : 0,
-                'flushInterval' => 1,
-                'targets' => [
-                    new yii\log\FileTarget([
-                        'exportInterval' => 1,
-                        'levels' => ['error', 'warning'],
-                        'microtime' => true,
-                    ]),
-                ]
-            ]);
-        },
+        'cache' => [
+            'class' => 'yii\caching\FileCache',
+            'gcProbability' => 0,
+        ],
+        'log' => [
+            'traceLevel' => YII_DEBUG ? 3 : 0,
+            'flushInterval' => 1,
+            'targets' => [
+                [
+                    'class' => 'yii\log\FileTarget',
+                    'levels' => ['error', 'warning'],
+                    'exportInterval' => 1,
+                    'microtime' => true,
+                ],
+            ]
+        ],
         /*
-        'redis' => function () {
-            return new yii\redis\Connection([
-                'hostname' => '127.0.0.1',
-                'port' => 6379,
-                'database' => 0,
-                'retries' => 1,
-            ]);
-        },
+        'redis' => [
+            'class' => 'yii\redis\Connection',
+            'hostname' => '127.0.0.1',
+            'port' => 6379,
+            'database' => 0,
+            'retries' => 1,
+        ],
         */
-        'urlManager' => function () {
-            return new yii\web\UrlManager([
-                'enablePrettyUrl' => true,
-                'showScriptName' => false,
-            ]);
-        },
-        // These components are overloaded for a small gain in performance (no DI)
-        'request' => function () {
-            return new yii\web\Request([
-                'cookieValidationKey' => '',
-                'enableCsrfValidation' => false,
-            ]);
-        },
-        'response' => function () {
-            return new yii\web\Response();
-        },
+        'errorHandler' => [
+            'discardExistingOutput' => false,
+            'silentExitOnException' => true,
+        ],
+        'urlManager' => [
+            'enablePrettyUrl' => true,
+            'showScriptName' => false,
+        ],
+        'request' => [
+            'cookieValidationKey' => '',
+            'enableCsrfValidation' => false,
+        ],
     ],
 ];
 
