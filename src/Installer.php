@@ -30,10 +30,17 @@ class Installer
             '/vendor/yiisoft/yii2/web/Session.php' => [
                 'register_shutdown_function(' => 'register_shutdown_function_user(',
             ],
+            '/vendor/yiisoft/yii2-debug/src/panels/TimelinePanel.php' => [
+                "YII_BEGIN_TIME" => "\$_SERVER['REQUEST_TIME_FLOAT']",
+            ],
+            '/vendor/yiisoft/yii2-debug/src/panels/ProfilingPanel.php' => [
+                "YII_BEGIN_TIME" => "\$_SERVER['REQUEST_TIME_FLOAT']",
+            ],
         ];
 
         foreach ($replaces as $file => $item) {
             $file = __DIR__ . '/..' . $file;
+            if (!is_file($file)) continue;
             $text = file_get_contents($file);
             foreach ($item as $search => $replace) {
                 $text = str_replace($search, $replace, $text);

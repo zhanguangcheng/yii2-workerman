@@ -2,6 +2,7 @@
 
 $params = require(__DIR__ . '/params.php');
 $db = require(__DIR__ . '/db.php');
+$redis = require __DIR__ . '/redis.php';
 
 $config = [
     'id' => 'yii2-workerman',
@@ -36,13 +37,7 @@ $config = [
             ]
         ],
         /*
-        'redis' => [
-            'class' => 'yii\redis\Connection',
-            'hostname' => '127.0.0.1',
-            'port' => 6379,
-            'database' => 0,
-            'retries' => 1,
-        ],
+        'redis' => $redis,
         */
         'errorHandler' => [
             'discardExistingOutput' => false,
@@ -55,6 +50,10 @@ $config = [
         'request' => [
             'cookieValidationKey' => '',
             'enableCsrfValidation' => false,
+            // Trust Proxy IP
+            'trustedHosts' => [
+                '127.0.0.1'
+            ]
         ],
     ],
 ];

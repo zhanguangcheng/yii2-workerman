@@ -2,7 +2,11 @@
 
 use Workerman\Worker;
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/init.php';
+
+Worker::$stdoutFile = __DIR__ . '/runtime/workerman.stdout.log';
+Worker::$logFile = __DIR__ . '/runtime/workerman.log';
+Worker::$pidFile = __DIR__ . '/runtime/workerman.pid';
 
 const GLOBAL_START = true;
 

@@ -9,7 +9,7 @@
 use server\Monitor;
 use Workerman\Worker;
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/init.php';
 
 $monitor_worker = new Worker();
 $monitor_worker->name = 'Monitor';
@@ -25,7 +25,9 @@ $monitor_worker->onWorkerStart = static function (): void {
     );
     if (DIRECTORY_SEPARATOR === '/') {
         $monitor->processMonitor();
-        $monitor->fileMonitor();
+        if (_env('YII_ENV') !== 'prod') {
+            $monitor->fileMonitor();
+        }
     }
 };
 
